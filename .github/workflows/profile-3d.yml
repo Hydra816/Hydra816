@@ -1,0 +1,46 @@
+# 🌌 3D Contribution Graph Generator
+# 每天 UTC 18:00 自动生成彩虹色 3D 贡献图
+# 需要配置 Personal Access Token (PAT) — 见下方说明
+
+name: 3D Contribution Graph
+
+on:
+  schedule:
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    name: Generate 3D Contribution Graph
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate settings.json
+        run: |
+          mkdir -p profile-3d-contrib
+          cat > profile-3d-contrib/settings.json << 'EOF'
+          {
+            "type": "rainbow",
+            "backgroundColor": "#0d1117",
+            "radarColor": "#7C3AED",
+            "growingAnimation": true,
+            "contribColors": ["#161b22", "#2D1B69", "#5B21B6", "#7C3AED", "#06B6D4"]
+          }
+          EOF
+
+      - name: Generate 3D Graph
+        uses: yoshi389111/github-profile-3d-contrib@0.8.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+          SETTING_JSON: profile-3d-contrib/settings.json
+
+      - name: Commit and push
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: auto-update 3D contribution graph"
+          file_pattern: profile-3d-contrib/**
